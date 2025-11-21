@@ -48,7 +48,7 @@ class Extension:
                 self._logger.warning("Event '%s' is already registered.", name)
 
             self._event_handlers[name] = func
-            self._logger.warning("Event '%s' is %s", name, func)
+            self._logger.info("Event '%s' is %s", name, func)
 
         return _event
 
