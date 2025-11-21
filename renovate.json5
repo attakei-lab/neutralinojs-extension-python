@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "github>aquaproj/aqua-renovate-config#2.8.2",
+    "github>attakei/workspace-configs//renovate/lefthook",
+    "github>attakei/workspace-configs//renovate/taskfile",
+  ],
+  "timezone": "Asia/Tokyo",
+  // Daytime hourly of Weekend 
+  "schedule": ["30 9-21 * * 0,6"],
+  "automerge": true,
+  "packageRules": [
+    // NOTE: Workflow's python version must be kept because it is minimum require-python version.
+    {
+      "matchFileNames": [".python-version"],
+      "enabled": false,
+    },
+    // NOTE: Require approve when it updates major version of deps
+    {
+      "matchDatasources": ["pypi"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+    },
+  ],
+}
