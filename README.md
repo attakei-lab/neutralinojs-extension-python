@@ -11,7 +11,7 @@ You can develop extension using Python as same as development web applications.
 Extension implements:
 
 ```python
-from neutralinojs_extenstion import Extension, Host
+from neutralinojs_extenstion import Extension, Connection
 
 app = Extension()
 
@@ -27,7 +27,7 @@ def handle_hello_extenstion(app: Extension, data):
 
 
 if __name__ == "__main__":
-    host = Host.from_stdin()
+    host = Connection.from_stdin()
     app.start(host)
 ```
 
