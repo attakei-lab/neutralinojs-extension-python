@@ -16,6 +16,7 @@ tasks:
     cmds:
       - 'uv sync --all-groups --frozen'
       - 'bun install'
+      - 'bun --cwd=e2e/app neu update'
       - 'lefthook install'
   verify:
     desc: 'Verify workspace'
