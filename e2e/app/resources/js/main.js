@@ -8,13 +8,18 @@ Neutralino.events.on("windowClose", () => {
 Neutralino.events.on("app_updateTitle", (e) => {
   document.querySelector("title").textContent = e.detail.title;
 });
-// Monitor quit signal
+
+// Process control for tests.
 (async () => {
-  const watcherId = await Neutralino.filesystem.createWatcher(window.NL_PATH);
+  const tmpDir = await Neutralino.filesystem.getJoinedPath(NL_PATH, ".tmp");
+  const pidPath = await Neutralino.filesystem.getJoinedPath(tmpDir, "pid.txt");
+  await Neutralino.filesystem.writeFile(pidPath, NL_APPID);
+  const watcherId = await Neutralino.filesystem.createWatcher(tmpDir);
   Neutralino.events.on("watchFile", (event) => {
     console.debug("File changed:", event.detail);
     if (watcherId !== event.detail.id) return;
-    if (event.detail.dir === "..tmp" && event.detail.filename === "QUIT") {
+    const { dir, filename, action } = event.detail;
+    if (dir === tmpDir && filename === "pid.txt" && action === "delete") {
       Neutralino.app.exit();
     }
   });
@@ -25,5 +30,3 @@ Neutralino.extensions.dispatch(
   "dev.attakei.neutralinojs.pythonext.e2e.backend",
   "hello",
 );
-
-Neutralino.debug.log("App is started.", "INFO");
