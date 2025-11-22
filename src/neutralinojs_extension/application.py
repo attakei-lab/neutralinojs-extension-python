@@ -7,10 +7,10 @@ import logging
 import threading
 from typing import TYPE_CHECKING
 
+from websocket import WebSocketApp
+
 if TYPE_CHECKING:
     from typing import Any, Callable
-
-    from websocket import WebSocketApp
 
     from .host import Connection, Payload
 
@@ -35,6 +35,7 @@ class Extension:
     _logger: logging.Logger
 
     def __init__(self, name: str = ""):
+        self._event_handlers = {}
         self._conn = None
         self._ws = None
         self._logger = logger.getChild(name if name else self.__class__.__name__)
@@ -47,7 +48,7 @@ class Extension:
                 self._logger.warning("Event '%s' is already registered.", name)
 
             self._event_handlers[name] = func
-            self._logger.warning("Event '%s' is %s", name, func)
+            self._logger.info("Event '%s' is %s", name, func)
 
         return _event
 

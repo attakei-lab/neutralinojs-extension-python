@@ -28,6 +28,27 @@ jobs:
       - name: 'Run linters'
         run: |
           lefthook run pre-commit --all-files
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y -f \
+          libgtk-3-dev \
+          libwebkit2gtk-4.1-0 \
+          libayatana-appindicator3-1 \
+          xvfb
+      - uses: actions/checkout@v5
+      - uses: aquaproj/aqua-installer@ea518c135a02fc11ff8024364510c181a5c6b342 # v4.0.3
+        with:
+          aqua_version: v2.51.2
+      - name: 'Configure dependencies'
+        run: |
+          task --yes setup-dev
+      - name: 'Run tests'
+        run: |
+          xvfb-run uv run pytest e2e
   build-test:
     runs-on: ubuntu-latest
     steps:
