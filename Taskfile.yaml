@@ -15,6 +15,7 @@ tasks:
     desc: 'Setup workspace'
     cmds:
       - 'uv sync --all-groups --frozen'
+      - 'bun install'
       - 'lefthook install'
   verify:
     desc: 'Verify workspace'
