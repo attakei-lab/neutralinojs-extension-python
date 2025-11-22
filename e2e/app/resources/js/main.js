@@ -28,7 +28,7 @@ Neutralino.events.on("app_updateTitle", (e) => {
       Neutralino.app.exit();
     }
     if (dir === sharedDir && filename.endsWith(".js") && action === "add") {
-      eval(
+      await eval(
         await Neutralino.filesystem.readFile(
           await Neutralino.filesystem.getJoinedPath(dir, filename),
         ),

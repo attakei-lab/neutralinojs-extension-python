@@ -48,12 +48,13 @@ class NeutralinoAppTester:
         self.pid_path.unlink()
         self.process.communicate()
 
-    def run_command(self, command: str):
+    def run_command(self, command: str, wait: int = 1):
         self._command_counter += 1
         command_path = self.work_dir / "shared" / f"command-{self._command_counter}.js"
         command_path.write_text(command)
         while not command_path.exists():
             time.sleep(0.1)
+        time.sleep(wait)
 
     def _wait_for_ready(self):
         start_time = time.time()
@@ -74,5 +75,6 @@ def make_neutralinojs_app(tmp_path):
         yield tester
 
         tester.stop()
+        time.sleep(0.5)
 
     return make_app
