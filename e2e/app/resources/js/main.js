@@ -11,7 +11,9 @@ Neutralino.events.on("app_updateTitle", (e) => {
 
 // Process control for tests.
 (async () => {
-  const tmpDir = await Neutralino.filesystem.getJoinedPath(NL_PATH, ".tmp");
+  const tmpDir = await Neutralino.filesystem.getNormalizedPath(
+    await Neutralino.os.getEnv("NL_TMPDIR"),
+  );
   const pidPath = await Neutralino.filesystem.getJoinedPath(tmpDir, "pid.txt");
   await Neutralino.filesystem.writeFile(pidPath, NL_APPID);
   const watcherId = await Neutralino.filesystem.createWatcher(tmpDir);

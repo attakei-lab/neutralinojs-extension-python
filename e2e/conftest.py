@@ -1,3 +1,4 @@
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -8,28 +9,31 @@ here = Path(__file__).parent
 
 
 class NeutralinoAppTester:
-    def __init__(self, app_dir: Path, timeout=10):
-        self.app_dir = here / "app"
+    def __init__(self, app_dir: Path, work_dir: Path, timeout=10):
+        self.app_dir = app_dir
+        self.work_dir = work_dir
         self.timeout = timeout
-        self.output_lines = []
 
     @property
-    def log_path(self) -> Path:
+    def app_log_path(self) -> Path:
         return self.app_dir / "neutralinojs.log"
 
     @property
-    def pid_path(self) -> Path:
-        return self.app_dir / ".tmp" / "pid.txt"
+    def backend_log_path(self) -> Path:
+        return self.work_dir / "backend.log"
 
-    def cleanup(self):
-        self.log_path.unlink(missing_ok=True)
-        self.pid_path.unlink(missing_ok=True)
+    @property
+    def pid_path(self) -> Path:
+        return self.work_dir / "pid.txt"
 
     def start(self):
-        self.cleanup()
+        self.app_log_path.unlink(missing_ok=True)
         self.process = subprocess.Popen(
             ["bun", "x", "neu", "run"],
             cwd=self.app_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=os.environ.copy() | {"NL_TMPDIR": str(self.work_dir)},
         )
         # Monitor logs
         self._wait_for_ready()
@@ -49,8 +53,8 @@ class NeutralinoAppTester:
 
 
 @pytest.fixture(scope="function")
-def neutralino_app():
-    tester = NeutralinoAppTester(Path(__file__) / "app")
+def neutralino_app(tmp_path):
+    tester = NeutralinoAppTester(Path(__file__).parent / "app", tmp_path)
     tester.start()
 
     yield tester
