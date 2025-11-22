@@ -27,14 +27,15 @@ Neutralino.events.on("app_updateTitle", (e) => {
     if (dir === sharedDir && filename === "proc" && action === "delete") {
       Neutralino.app.exit();
     }
-    if (dir === sharedDir && filename === "command.js" && action === "add") {
+    if (dir === sharedDir && filename.endsWith(".js") && action === "add") {
       eval(
         await Neutralino.filesystem.readFile(
           await Neutralino.filesystem.getJoinedPath(dir, filename),
         ),
       );
-      await Neutralino.filesystem.remove(
+      await Neutralino.filesystem.move(
         await Neutralino.filesystem.getJoinedPath(dir, filename),
+        await Neutralino.filesystem.getJoinedPath(dir, `${filename}_done`),
       );
     }
   });

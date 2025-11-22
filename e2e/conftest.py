@@ -1,6 +1,7 @@
 import os
 import subprocess
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -13,6 +14,7 @@ class NeutralinoAppTester:
         self.app_dir = app_dir
         self.work_dir = work_dir
         self.timeout = timeout
+        self._command_counter = 0
         (self.work_dir / "shared").mkdir()
 
     @property
@@ -27,7 +29,7 @@ class NeutralinoAppTester:
     def pid_path(self) -> Path:
         return self.work_dir / "shared" / "proc"
 
-    def start(self):
+    def start(self, html: str | None = None):
         self.app_log_path.unlink(missing_ok=True)
         self.process = subprocess.Popen(
             ["bun", "x", "neu", "run"],
@@ -38,13 +40,17 @@ class NeutralinoAppTester:
         )
         # Monitor logs
         self._wait_for_ready()
+        if html:
+            command = f"document.querySelector('#app').innerHTML = `{html}`;"
+            self.run_command(command)
 
     def stop(self):
         self.pid_path.unlink()
         self.process.communicate()
 
     def run_command(self, command: str):
-        command_path = self.work_dir / "shared" / "command.js"
+        self._command_counter += 1
+        command_path = self.work_dir / "shared" / f"command-{self._command_counter}.js"
         command_path.write_text(command)
         while not command_path.exists():
             time.sleep(0.1)
@@ -59,10 +65,14 @@ class NeutralinoAppTester:
 
 
 @pytest.fixture(scope="function")
-def neutralino_app(tmp_path):
-    tester = NeutralinoAppTester(Path(__file__).parent / "app", tmp_path)
-    tester.start()
+def make_neutralinojs_app(tmp_path):
+    @contextmanager
+    def make_app(html: str | None = None, command: str | None = None):
+        tester = NeutralinoAppTester(Path(__file__).parent / "app", tmp_path)
+        tester.start(html)
 
-    yield tester
+        yield tester
 
-    tester.stop()
+        tester.stop()
+
+    return make_app
