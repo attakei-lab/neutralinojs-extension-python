@@ -13,6 +13,7 @@ class NeutralinoAppTester:
         self.app_dir = app_dir
         self.work_dir = work_dir
         self.timeout = timeout
+        (self.work_dir / "shared").mkdir()
 
     @property
     def app_log_path(self) -> Path:
@@ -24,7 +25,7 @@ class NeutralinoAppTester:
 
     @property
     def pid_path(self) -> Path:
-        return self.work_dir / "pid.txt"
+        return self.work_dir / "shared" / "proc"
 
     def start(self):
         self.app_log_path.unlink(missing_ok=True)
@@ -39,9 +40,14 @@ class NeutralinoAppTester:
         self._wait_for_ready()
 
     def stop(self):
-        """アプリを停止"""
         self.pid_path.unlink()
         self.process.communicate()
+
+    def run_command(self, command: str):
+        command_path = self.work_dir / "shared" / "command.js"
+        command_path.write_text(command)
+        while not command_path.exists():
+            time.sleep(0.1)
 
     def _wait_for_ready(self):
         start_time = time.time()
