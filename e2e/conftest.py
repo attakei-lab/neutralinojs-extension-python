@@ -30,8 +30,6 @@ class NeutralinoAppTester:
         self.process = subprocess.Popen(
             ["bun", "x", "neu", "run"],
             cwd=self.app_dir,
-            shell=True,
-            bufsize=1,
         )
         # Monitor logs
         self._wait_for_ready()
