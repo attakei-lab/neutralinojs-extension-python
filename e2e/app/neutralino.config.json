@@ -13,7 +13,14 @@
     "enabled": true,
     "writeToLogFile": true
   },
-  "nativeAllowList": ["app.*", "os.*", "debug.log", "extensions.*", "window.*"],
+  "nativeAllowList": [
+    "app.*",
+    "os.*",
+    "debug.log",
+    "extensions.*",
+    "filesystem.*",
+    "window.*"
+  ],
   "enableExtensions": true,
   "extensions": [
     {

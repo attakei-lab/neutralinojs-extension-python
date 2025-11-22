@@ -21,4 +21,8 @@ dev = [
     "ruff>=0.14.5",
     "ty>=0.0.1a27",
     "typing-extensions>=4.15.0",
+    {include-group = "e2e"},
+]
+e2e = [
+    "pytest>=8.4.2",
 ]
