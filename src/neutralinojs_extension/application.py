@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
     from .host import Connection
 
-    EventHandler = Callable[["Extension", Any | None], None]
+    EventHandler = Callable[["Extension", ...], None]
 
 
 logger = logging.getLogger(__name__)
