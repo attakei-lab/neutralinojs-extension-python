@@ -7,11 +7,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ._base import APIParameters
+from ._base import APISchema
 
 
 @dataclass
-class Window_SetTitle(APIParameters):
+class Window_SetTitle(APISchema):
     """Sets the title of the native window.
 
     :ref: https://neutralino.js.org/docs/api/window#windowsettitletitle

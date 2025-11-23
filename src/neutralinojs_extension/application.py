@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, overload
 
 from websocket import WebSocketApp
 
-from .native_api import APIParameters
+from .native_api import APISchema
 
 if TYPE_CHECKING:
     from typing import Any, Callable
@@ -61,14 +61,14 @@ class Extension:
         self._ws.run_forever()
 
     @overload
-    def send(self, method_or_data: APIParameters): ...
+    def send(self, method_or_data: APISchema): ...
     @overload
-    def send(self, method_or_data: str, data: APIParameters): ...
+    def send(self, method_or_data: str, data: APISchema): ...
 
     def send(
         self,
-        method_or_data: str | APIParameters,
-        data: APIParameters | Any | None = None,
+        method_or_data: str | APISchema,
+        data: APISchema | Any | None = None,
     ):
         """Send message to host.
 
@@ -79,7 +79,7 @@ class Extension:
             self._logger.warning("Sending message, but it doesn't connect anywhere.")
             return
 
-        if isinstance(method_or_data, APIParameters):
+        if isinstance(method_or_data, APISchema):
             message = self._conn.make_message(method_or_data.ID, method_or_data)
         else:
             message = self._conn.make_message(method_or_data, data)

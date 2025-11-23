@@ -11,7 +11,7 @@ class CustomEventData:
     pass
 
 
-class APIParameters:
+class APISchema:
     """Base class for all native API classes."""
 
     ID: ClassVar[str]

@@ -10,6 +10,6 @@
 
 from __future__ import annotations
 
-from ._base import APIParameters, CustomEventData
+from ._base import APISchema, CustomEventData
 
-__all__ = ["APIParameters", "CustomEventData"]
+__all__ = ["APISchema", "CustomEventData"]

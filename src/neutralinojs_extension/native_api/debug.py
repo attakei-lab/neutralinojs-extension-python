@@ -8,14 +8,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from ._base import APIParameters
+from ._base import APISchema
 
 if TYPE_CHECKING:
     from typing import Literal
 
 
 @dataclass
-class Debug_Log(APIParameters):
+class Debug_Log(APISchema):
     """Writes messages to neutralinojs.log file or/and standard output streams.
 
     :ref: https://neutralino.js.org/docs/api/debug/#debuglogmessage-type
