@@ -5,14 +5,19 @@ from __future__ import annotations
 import json
 import logging
 import threading
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 from websocket import WebSocketApp
 
 if TYPE_CHECKING:
-    from typing import Any, Callable
+    from typing import Any, Callable, Literal
 
-    from .host import Connection, Payload
+    from .host import Connection
+    from .native_api import APIParameters
+    from .native_api.app import App_Broadcast
+    from .native_api.debug import Debug_Log
+    from .native_api.os import Os_ShowNotification
+    from .native_api.window import Window_SetTitle
 
     EventHandler = Callable[["Extension", Any | None], None]
 
@@ -58,7 +63,18 @@ class Extension:
         self._ws = WebSocketApp(self._conn.url, on_message=self._on_message)
         self._ws.run_forever()
 
-    def send(self, method: str, data: Payload | Any | None):
+    @overload
+    def send(self, method: Literal["app.broadcast"], data: App_Broadcast): ...
+    @overload
+    def send(self, method: Literal["debug.log"], data: Debug_Log): ...
+    @overload
+    def send(
+        self, method: Literal["os.showNotification"], data: Os_ShowNotification
+    ): ...
+    @overload
+    def send(self, method: Literal["window.setTitle"], data: Window_SetTitle): ...
+
+    def send(self, method: str, data: APIParameters | Any | None):
         """Send message to host."""
         if not self._conn or not self._ws:
             self._logger.warning("Sending message, but it doesn't connect anywhere.")
