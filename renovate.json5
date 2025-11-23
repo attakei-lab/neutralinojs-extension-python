@@ -7,8 +7,7 @@
     "github>attakei/workspace-configs//renovate/taskfile",
   ],
   "timezone": "Asia/Tokyo",
-  // Daytime hourly of Weekend 
-  "schedule": ["30 9-21 * * 0,6"],
+  "schedule": ["* 9-15 * * 0,6"],
   "automerge": true,
   "packageRules": [
     // NOTE: Workflow's python version must be kept because it is minimum require-python version.
