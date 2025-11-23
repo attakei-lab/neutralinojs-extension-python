@@ -7,6 +7,12 @@ from neutralinojs_extension import Connection, Extension
 app = Extension()
 
 
+@app.event("calculate")
+def calculate(app: Extension, data):
+    result = eval(data)
+    app.send("app.broadcast", {"event": "app_resultCalculate", "data": result})
+
+
 @app.event("hello")
 def hello(app: Extension, data):
     logging.info("Called 'hello' handler.")

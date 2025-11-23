@@ -56,6 +56,10 @@ class NeutralinoAppTester:
             time.sleep(0.1)
         time.sleep(wait)
 
+    def wait_for_file(self, wait_for_file: Path):
+        while wait_for_file and not wait_for_file.exists():
+            time.sleep(0.1)
+
     def _wait_for_ready(self):
         start_time = time.time()
         while time.time() - start_time < self.timeout:
