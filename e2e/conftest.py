@@ -1,5 +1,7 @@
+import os
 import subprocess
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -8,36 +10,55 @@ here = Path(__file__).parent
 
 
 class NeutralinoAppTester:
-    def __init__(self, app_dir: Path, timeout=10):
-        self.app_dir = here / "app"
+    def __init__(self, app_dir: Path, work_dir: Path, timeout=10):
+        self.app_dir = app_dir
+        self.work_dir = work_dir
         self.timeout = timeout
-        self.output_lines = []
+        self._command_counter = 0
+        (self.work_dir / "shared").mkdir()
 
     @property
-    def log_path(self) -> Path:
+    def app_log_path(self) -> Path:
         return self.app_dir / "neutralinojs.log"
 
     @property
+    def backend_log_path(self) -> Path:
+        return self.work_dir / "backend.log"
+
+    @property
     def pid_path(self) -> Path:
-        return self.app_dir / ".tmp" / "pid.txt"
+        return self.work_dir / "shared" / "proc"
 
-    def cleanup(self):
-        self.log_path.unlink(missing_ok=True)
-        self.pid_path.unlink(missing_ok=True)
-
-    def start(self):
-        self.cleanup()
+    def start(self, html: str | None = None):
+        self.app_log_path.unlink(missing_ok=True)
         self.process = subprocess.Popen(
             ["bun", "x", "neu", "run"],
             cwd=self.app_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=os.environ.copy() | {"NL_TMPDIR": str(self.work_dir)},
         )
         # Monitor logs
         self._wait_for_ready()
+        if html:
+            command = f"document.querySelector('#app').innerHTML = `{html}`;"
+            self.run_command(command)
 
     def stop(self):
-        """アプリを停止"""
         self.pid_path.unlink()
         self.process.communicate()
+
+    def run_command(self, command: str, wait: int = 1):
+        self._command_counter += 1
+        command_path = self.work_dir / "shared" / f"command-{self._command_counter}.js"
+        command_path.write_text(command)
+        while not command_path.exists():
+            time.sleep(0.1)
+        time.sleep(wait)
+
+    def wait_for_file(self, wait_for_file: Path):
+        while wait_for_file and not wait_for_file.exists():
+            time.sleep(0.1)
 
     def _wait_for_ready(self):
         start_time = time.time()
@@ -49,10 +70,15 @@ class NeutralinoAppTester:
 
 
 @pytest.fixture(scope="function")
-def neutralino_app():
-    tester = NeutralinoAppTester(Path(__file__) / "app")
-    tester.start()
+def make_neutralinojs_app(tmp_path):
+    @contextmanager
+    def make_app(html: str | None = None, command: str | None = None):
+        tester = NeutralinoAppTester(Path(__file__).parent / "app", tmp_path)
+        tester.start(html)
 
-    yield tester
+        yield tester
 
-    tester.stop()
+        tester.stop()
+        time.sleep(0.5)
+
+    return make_app
