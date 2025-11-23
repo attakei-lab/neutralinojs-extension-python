@@ -9,15 +9,12 @@ from typing import TYPE_CHECKING, overload
 
 from websocket import WebSocketApp
 
+from .native_api import APIParameters
+
 if TYPE_CHECKING:
-    from typing import Any, Callable, Literal
+    from typing import Any, Callable
 
     from .host import Connection
-    from .native_api import APIParameters
-    from .native_api.app import App_Broadcast
-    from .native_api.debug import Debug_Log
-    from .native_api.os import Os_ShowNotification
-    from .native_api.window import Window_SetTitle
 
     EventHandler = Callable[["Extension", Any | None], None]
 
@@ -64,23 +61,29 @@ class Extension:
         self._ws.run_forever()
 
     @overload
-    def send(self, method: Literal["app.broadcast"], data: App_Broadcast): ...
+    def send(self, method_or_data: APIParameters): ...
     @overload
-    def send(self, method: Literal["debug.log"], data: Debug_Log): ...
-    @overload
-    def send(
-        self, method: Literal["os.showNotification"], data: Os_ShowNotification
-    ): ...
-    @overload
-    def send(self, method: Literal["window.setTitle"], data: Window_SetTitle): ...
+    def send(self, method_or_data: str, data: APIParameters): ...
 
-    def send(self, method: str, data: APIParameters | Any | None):
-        """Send message to host."""
+    def send(
+        self,
+        method_or_data: str | APIParameters,
+        data: APIParameters | Any | None = None,
+    ):
+        """Send message to host.
+
+        :param method_or_data: Method name or APIParameters object.
+        :param data: Data to send (This is used if ``method_or_data`` is a string).
+        """
         if not self._conn or not self._ws:
             self._logger.warning("Sending message, but it doesn't connect anywhere.")
             return
 
-        message = self._conn.make_message(method, data)
+        if isinstance(method_or_data, APIParameters):
+            message = self._conn.make_message(method_or_data.ID, method_or_data)
+        else:
+            message = self._conn.make_message(method_or_data, data)
+
         self._ws.send(message.to_json())
 
     def _on_message(self, ws: WebSocketApp, message: str | bytes):

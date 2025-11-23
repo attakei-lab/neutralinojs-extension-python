@@ -19,12 +19,9 @@ def calculate(app: Extension, data):
 @app.event("hello")
 def hello(app: Extension, data):
     logging.info("Called 'hello' handler.")
-    app.send("debug.log", Debug_Log("Hello, world"))
-    app.send("window.setTitle", Window_SetTitle("Hello, world"))
-    app.send(
-        "app.broadcast",
-        App_Broadcast("app_updateTitle", {"title": "Hello, world"}),
-    )
+    app.send(Debug_Log("Hello, world"))
+    app.send(Window_SetTitle("Hello, world"))
+    app.send(App_Broadcast("app_updateTitle", {"title": "Hello, world"}))
 
 
 if __name__ == "__main__":
