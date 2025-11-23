@@ -46,19 +46,31 @@ class NeutralinoAppTester:
 
     def stop(self):
         self.pid_path.unlink()
-        self.process.communicate()
+        try:
+            self.process.communicate(timeout=self.timeout)
+        except subprocess.TimeoutExpired:
+            self.process.terminate()
+            self.process.wait()
 
-    def run_command(self, command: str, wait: int = 1):
+    def run_command(self, command: str, timeout: int = 5, wait: int = 1):
         self._command_counter += 1
         command_path = self.work_dir / "shared" / f"command-{self._command_counter}.js"
         command_path.write_text(command)
-        while not command_path.exists():
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if not command_path.exists():
+                time.sleep(wait)
+                return
             time.sleep(0.1)
-        time.sleep(wait)
+        raise TimeoutError("Command is not finished in times")
 
-    def wait_for_file(self, wait_for_file: Path):
-        while wait_for_file and not wait_for_file.exists():
+    def wait_for_file(self, target: Path, timeout: int = 5):
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if target.exists():
+                return
             time.sleep(0.1)
+        raise TimeoutError(f"File '{target}' is not found in waiting time")
 
     def _wait_for_ready(self):
         start_time = time.time()
@@ -72,13 +84,15 @@ class NeutralinoAppTester:
 @pytest.fixture(scope="function")
 def make_neutralinojs_app(tmp_path):
     @contextmanager
-    def make_app(html: str | None = None, command: str | None = None):
-        tester = NeutralinoAppTester(Path(__file__).parent / "app", tmp_path)
+    def make_app(html: str | None = None, command: str | None = None, timeout: int = 5):
+        tester = NeutralinoAppTester(Path(__file__).parent / "app", tmp_path, timeout)
         tester.start(html)
 
-        yield tester
+        try:
+            yield tester
 
-        tester.stop()
-        time.sleep(0.5)
+        finally:
+            tester.stop()
+            time.sleep(0.5)
 
     return make_app
