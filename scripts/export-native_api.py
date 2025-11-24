@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from dataclasses import is_dataclass
 from importlib import import_module
 from itertools import chain
@@ -57,6 +58,7 @@ __all__ = [
 ]
 '''
 
+before = target.read_text()
 target.write_text("")
 exports = generate_exports(target.parent)
 imports = "\n".join(
@@ -64,4 +66,8 @@ imports = "\n".join(
     for name, cls in exports.items()
 )
 class_names = "\n".join(f'    "{name}",' for name in exports.keys())
-target.write_text(template.format(imports=imports, class_names=class_names))
+after = template.format(imports=imports, class_names=class_names)
+target.write_text(after)
+
+sys.stderr.write(f"{target} has updates, please add it to commit.")
+sys.exit(0 if before == after else 1)
