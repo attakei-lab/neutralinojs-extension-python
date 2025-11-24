@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class App_Broadcast(APISchema):
+class Broadcast(APISchema):
     """Dispatches an event to all app instances.
 
     :ref: https://neutralino.js.org/docs/api/app#appbroadcastevent-data

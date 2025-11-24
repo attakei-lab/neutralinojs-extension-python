@@ -11,7 +11,7 @@ from ._base import APISchema
 
 
 @dataclass
-class Window_SetTitle(APISchema):
+class SetTitle(APISchema):
     """Sets the title of the native window.
 
     :ref: https://neutralino.js.org/docs/api/window#windowsettitletitle

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class Debug_Log(APISchema):
+class Log(APISchema):
     """Writes messages to neutralinojs.log file or/and standard output streams.
 
     :ref: https://neutralino.js.org/docs/api/debug/#debuglogmessage-type

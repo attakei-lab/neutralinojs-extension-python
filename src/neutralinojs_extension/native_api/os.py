@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class Os_ShowNotification(APISchema):
+class ShowNotification(APISchema):
     """Displays a notification message.
 
     :ref: https://neutralino.js.org/docs/api/os#osshownotificationtitle-content-icon
