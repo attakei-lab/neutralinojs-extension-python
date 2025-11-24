@@ -14,18 +14,16 @@ Extension implements:
 
 ```python
 from neutralinojs_extenstion import Extension, Connection
-from neutralinojs_extenstion.native_api import App_Broadcast
+from neutralinojs_extenstion.native_api import Os_ShowNotification
 
 app = Extension()
 
 
 @app.event("hello")
-def handle_hello_extenstion(app: Extension, data):
-    app.send(App_Broadcast(
-        "showMessageBox",
-        {
-            "text": f"Hello {data['name']}",
-        }
+def handle_hello_extenstion(app, data):
+    app.send(Os_ShowNotification(
+        "Hi!",
+        f"Hello {data['name']}, I am Neutralinojs extension!!",
     )
 
 
@@ -39,8 +37,5 @@ Desktop implements:
 ```javascript
 Neutralino.init();
 
-Neutralino.events.on("showMessageBox", (e) => {
-  Neutralino.window.showMessageBox(e.detail.text)
-})
 Neutralino.events.dispatch("hello", {name: "Kazuya Takei"});
 ```
