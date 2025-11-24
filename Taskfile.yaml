@@ -27,3 +27,10 @@ tasks:
     dir: './example'
     cmds:
       - 'bun x neu run -- {{.CLI_ARGS}}'
+  release-*:
+    desc: 'Run release process'
+    vars:
+      LEVEL: '{{index .MATCH 0}}'
+    cmds:
+      - 'age {{.LEVEL}}'
+      - 'uv sync --all-extras' # To write out as lock-file
