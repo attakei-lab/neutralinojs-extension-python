@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, overload
 
 from websocket import WebSocketApp
 
-from .native_api import APISchema
+from .native_api._base import APISchema
 
 if TYPE_CHECKING:
     from typing import Any, Callable

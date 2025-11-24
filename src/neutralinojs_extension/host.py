@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from .native_api import APISchema
+from .native_api._base import APISchema
 
 if TYPE_CHECKING:
     from typing import Any

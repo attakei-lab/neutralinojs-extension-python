@@ -9,7 +9,3 @@
 """
 
 from __future__ import annotations
-
-from ._base import APISchema, CustomEventData
-
-__all__ = ["APISchema", "CustomEventData"]
