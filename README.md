@@ -1,5 +1,7 @@
 # Neutralinojs extension toolkit for Python
 
+IMPORTANT: This library is still in development and may not be fully functional. So, this is not published on PyPI yet.
+
 ## Overview
 
 This is framework library for Neutralinojs extension that works likely Flask and FastAPI and provides classes and types.
