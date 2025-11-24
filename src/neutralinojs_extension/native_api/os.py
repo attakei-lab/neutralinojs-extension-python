@@ -15,6 +15,28 @@ if TYPE_CHECKING:
 
 
 @dataclass
+class ShowMessageBox(APISchema):
+    """Displays a message box.
+
+    :ref: https://neutralino.js.org/docs/api/os#osshowmessageboxtitle-content-choice-icon
+    """
+
+    ID = "os.showMessageBox"
+
+    title: str
+    content: str
+    choice: Literal[
+        "OK",
+        "OK_CANCEL",
+        "YES_NO",
+        "YES_NO_CANCEL",
+        "RETRY_CANCEL",
+        "ABORT_RETRY_IGNORE",
+    ] = "OK"
+    icon: Literal["INFO", "WARNING", "ERROR", "QUESTION"] = "INFO"
+
+
+@dataclass
 class ShowNotification(APISchema):
     """Displays a notification message.
 
