@@ -12,18 +12,19 @@ Extension implements:
 
 ```python
 from neutralinojs_extenstion import Extension, Connection
+from neutralinojs_extenstion.native_api import App_Broadcast
 
 app = Extension()
 
 
 @app.event("hello")
 def handle_hello_extenstion(app: Extension, data):
-    app.send("app.broadcast", {
-        "event": "showMessageBox",
-        "data": {
+    app.send(App_Broadcast(
+        "showMessageBox",
+        {
             "text": f"Hello {data['name']}",
         }
-    })
+    )
 
 
 if __name__ == "__main__":
