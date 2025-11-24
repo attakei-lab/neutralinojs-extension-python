@@ -48,3 +48,17 @@ class ShowNotification(APISchema):
     title: str
     content: str
     icon: Literal["INFO", "WARNING", "ERROR", "QUESTION"] = "INFO"
+
+
+@dataclass
+class ShowOpenDialog(APISchema):
+    """Shows the file open dialog. You can use this function to obtain paths of existing files.
+
+    :ref: https://neutralino.js.org/docs/api/os#osshowopendialogtitle-options
+    """
+
+    ID = "os.showOpenDialog"
+
+    title: str
+    # TODO: Define details after.
+    options: dict
