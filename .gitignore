@@ -2,6 +2,7 @@
 ### command with: node python
 
 .task
+lefthook-local.yaml
 
 ### Node ###
 # Logs

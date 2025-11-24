@@ -8,9 +8,3 @@ remotes:
     configs:
       - 'projects/sphinx-doc/lefthook.yaml'
       - 'projects/python/lefthook-astral.yaml'
-
-pre-commit:
-  jobs:
-    - name: 'Generate native api package exports'
-      glob: 'src/neutralinojs_extension/native_api/*.py'
-      run: '{run_python} python scripts/export-native_api.py'
