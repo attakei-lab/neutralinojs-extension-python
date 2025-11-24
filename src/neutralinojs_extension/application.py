@@ -5,16 +5,18 @@ from __future__ import annotations
 import json
 import logging
 import threading
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 from websocket import WebSocketApp
+
+from .native_api._base import APISchema
 
 if TYPE_CHECKING:
     from typing import Any, Callable
 
-    from .host import Connection, Payload
+    from .host import Connection
 
-    EventHandler = Callable[["Extension", Any | None], None]
+    EventHandler = Callable[["Extension", ...], None]
 
 
 logger = logging.getLogger(__name__)
@@ -58,13 +60,30 @@ class Extension:
         self._ws = WebSocketApp(self._conn.url, on_message=self._on_message)
         self._ws.run_forever()
 
-    def send(self, method: str, data: Payload | Any | None):
-        """Send message to host."""
+    @overload
+    def send(self, method_or_data: APISchema): ...
+    @overload
+    def send(self, method_or_data: str, data: APISchema): ...
+
+    def send(
+        self,
+        method_or_data: str | APISchema,
+        data: APISchema | Any | None = None,
+    ):
+        """Send message to host.
+
+        :param method_or_data: Method name or APIParameters object.
+        :param data: Data to send (This is used if ``method_or_data`` is a string).
+        """
         if not self._conn or not self._ws:
             self._logger.warning("Sending message, but it doesn't connect anywhere.")
             return
 
-        message = self._conn.make_message(method, data)
+        if isinstance(method_or_data, APISchema):
+            message = self._conn.make_message(method_or_data.ID, method_or_data)
+        else:
+            message = self._conn.make_message(method_or_data, data)
+
         self._ws.send(message.to_json())
 
     def _on_message(self, ws: WebSocketApp, message: str | bytes):

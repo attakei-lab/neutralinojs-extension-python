@@ -22,3 +22,8 @@ tasks:
     desc: 'Verify workspace'
     cmds:
       - 'lefthook run pre-commit --all-files'
+  example-run:
+    desc: 'Run example app'
+    dir: './example'
+    cmds:
+      - 'bun x neu run -- {{.CLI_ARGS}}'

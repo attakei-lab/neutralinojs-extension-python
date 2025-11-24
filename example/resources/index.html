@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kitchin Sink for neutralinojs-extensions-python</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="app" x-data="{}">
+      <header></header>
+      <section class="container">
+        <aside class="menu">
+          <p class="menu-label">Cotents</p>
+          <ul class="menu-list"></ul>
+        </aside>
+      </section>
+      <main id="conent-main">
+        <h1 class="title">Kitchin Sink for neutralinojs-extensions-python</h1>
+        <p>
+          This is example app with extension based from
+          neutralinojs-extension-python.
+        </p>
+        <p>
+          At first, please click this button. You may receive notification on OS
+          by backend extension.
+        </p>
+        <form
+          x-data="{name: ''}"
+          @submit.prevent="Neutralino.extensions.dispatch((await Neutralino.app.getConfig()).extensions[0].id, 'hello', name);"
+        >
+          <div class="field has-addons">
+            <div class="control">
+              <input
+                class="input"
+                type="text"
+                placeholder="Enter your name"
+                x-model="name"
+              />
+            </div>
+            <div class="control">
+              <button class="button is-info" type="submit">Send</button>
+            </div>
+          </div>
+        </form>
+      </main>
+    </div>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script src="/js/neutralino.js"></script>
+    <script src="/js/main.js"></script>
+  </body>
+</html>

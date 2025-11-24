@@ -1,0 +1,5 @@
+pre-commit:
+  jobs:
+    - name: 'Generate native api package exports'
+      glob: 'src/neutralinojs_extension/native_api/*.py'
+      run: 'uv run python scripts/export-native_api.py'
