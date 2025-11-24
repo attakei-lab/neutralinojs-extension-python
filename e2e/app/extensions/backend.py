@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 
 from neutralinojs_extension import Connection, Extension
+from neutralinojs_extension.native_api import Debug_Log
 from neutralinojs_extension.native_api.app import Broadcast
-from neutralinojs_extension.native_api.debug import Log
 from neutralinojs_extension.native_api.window import SetTitle
 
 app = Extension()
@@ -19,7 +19,7 @@ def calculate(app: Extension, data):
 @app.event("hello")
 def hello(app: Extension, data):
     logging.info("Called 'hello' handler.")
-    app.send(Log("Hello, world"))
+    app.send(Debug_Log("Hello, world"))
     app.send(SetTitle("Hello, world"))
     app.send(Broadcast("app_updateTitle", {"title": "Hello, world"}))
 
