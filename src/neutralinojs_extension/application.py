@@ -18,10 +18,8 @@ if TYPE_CHECKING:
 
     from .host import Connection
 
-    EventHandler = (
-        Callable[["Extension", ...], None]
-        | Callable[["Extension", ...], Coroutine[Any, Any, None]]
-    )
+    # TODO: Currently, event handlers must be async functions.
+    EventHandler = Callable[["Extension", ...], Coroutine[Any, Any, None]]
 
 
 logger = logging.getLogger(__name__)
@@ -97,33 +95,7 @@ class Extension:
         else:
             message = self._conn.make_message(method_or_data, data)
 
-        return self._ws.send_str(message.to_json()), asyncio.get_event_loop()
-
-    @overload
-    async def send_sync(self, method_or_data: APISchema): ...
-    @overload
-    async def send_sync(self, method_or_data: str, data: APISchema): ...
-
-    def send_sync(
-        self, method_or_data: str | APISchema, data: APISchema | Any | None = None
-    ):
-        """Send message to host synchronously.
-
-        :param method_or_data: Method name or APIParameters object.
-        :param data: Data to send (This is used if ``method_or_data`` is a string).
-        """
-        if not self._conn or not self._ws:
-            self._logger.warning("Sending message, but it doesn't connect anywhere.")
-            return
-
-        if isinstance(method_or_data, APISchema):
-            message = self._conn.make_message(method_or_data.ID, method_or_data)
-        else:
-            message = self._conn.make_message(method_or_data, data)
-
-        return asyncio.run_coroutine_threadsafe(
-            self._ws.send_str(message.to_json()), asyncio.get_event_loop()
-        )
+        return await self._ws.send_str(message.to_json()), asyncio.get_event_loop()
 
     async def _on_message(self, message: str | bytes):
         """Entrypoint for message from host."""

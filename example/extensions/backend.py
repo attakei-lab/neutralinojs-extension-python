@@ -10,9 +10,11 @@ app_dir = Path(__file__).parent.parent
 
 
 @app.event("hello")
-def hello(app, data: str):
+async def hello(app, data: str):
     """When host call 'Hello' event."""
-    app.send_sync(ShowNotification("Hi!", f"Hello {data}, I am neutralino-extension!!"))
+    await app.send(
+        ShowNotification("Hi!", f"Hello {data}, I am neutralino-extension!!")
+    )
 
 
 if __name__ == "__main__":
