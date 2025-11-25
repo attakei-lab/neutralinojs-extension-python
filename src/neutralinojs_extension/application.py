@@ -2,21 +2,26 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
-import threading
 from typing import TYPE_CHECKING, overload
 
-from websocket import WebSocketApp
+from aiohttp import ClientSession, WSMsgType
 
 from .native_api._base import APISchema
 
 if TYPE_CHECKING:
-    from typing import Any, Callable
+    from typing import Any, Callable, Coroutine
+
+    from aiohttp import ClientWebSocketResponse
 
     from .host import Connection
 
-    EventHandler = Callable[["Extension", ...], None]
+    EventHandler = (
+        Callable[["Extension", ...], None]
+        | Callable[["Extension", ...], Coroutine[Any, Any, None]]
+    )
 
 
 logger = logging.getLogger(__name__)
@@ -32,8 +37,8 @@ class Extension:
     """Store of event handlers."""
     _conn: Connection | None
     """Using connection."""
-    _ws: WebSocketApp | None
-    """Connected socket."""
+    _ws: ClientWebSocketResponse | None
+    """Connected WebSocket."""
     _logger: logging.Logger
 
     def __init__(self, name: str = ""):
@@ -54,18 +59,26 @@ class Extension:
 
         return _event
 
-    def start(self, conn: Connection):
+    async def start(self, conn: Connection):
         """Connect host and start waiting messages."""
         self._conn = conn
-        self._ws = WebSocketApp(self._conn.url, on_message=self._on_message)
-        self._ws.run_forever()
+        async with ClientSession().ws_connect(self._conn.url) as ws:
+            self._ws = ws
+            async for msg in ws:
+                if msg.type == WSMsgType.TEXT:
+                    asyncio.create_task(self._on_message(msg.data))
+                elif msg.type == WSMsgType.CLOSE:
+                    await ws.close()
+                    break
+                else:
+                    self._logger.warning(msg)
 
     @overload
-    def send(self, method_or_data: APISchema): ...
+    async def send(self, method_or_data: APISchema): ...
     @overload
-    def send(self, method_or_data: str, data: APISchema): ...
+    async def send(self, method_or_data: str, data: APISchema): ...
 
-    def send(
+    async def send(
         self,
         method_or_data: str | APISchema,
         data: APISchema | Any | None = None,
@@ -84,9 +97,35 @@ class Extension:
         else:
             message = self._conn.make_message(method_or_data, data)
 
-        self._ws.send(message.to_json())
+        return self._ws.send_str(message.to_json()), asyncio.get_event_loop()
 
-    def _on_message(self, ws: WebSocketApp, message: str | bytes):
+    @overload
+    async def send_sync(self, method_or_data: APISchema): ...
+    @overload
+    async def send_sync(self, method_or_data: str, data: APISchema): ...
+
+    def send_sync(
+        self, method_or_data: str | APISchema, data: APISchema | Any | None = None
+    ):
+        """Send message to host synchronously.
+
+        :param method_or_data: Method name or APIParameters object.
+        :param data: Data to send (This is used if ``method_or_data`` is a string).
+        """
+        if not self._conn or not self._ws:
+            self._logger.warning("Sending message, but it doesn't connect anywhere.")
+            return
+
+        if isinstance(method_or_data, APISchema):
+            message = self._conn.make_message(method_or_data.ID, method_or_data)
+        else:
+            message = self._conn.make_message(method_or_data, data)
+
+        return asyncio.run_coroutine_threadsafe(
+            self._ws.send_str(message.to_json()), asyncio.get_event_loop()
+        )
+
+    async def _on_message(self, message: str | bytes):
         """Entrypoint for message from host."""
         self._logger.debug("Recieved: %s", message)
         msg = json.loads(message)
@@ -99,7 +138,8 @@ class Extension:
             self._logger.debug("Event '%s' is unknown. Skip it.", msg["event"])
             return
 
-        threading.Thread(
-            target=self._event_handlers[msg["event"]],
-            args=(self, msg.get("data", None)),
-        ).start()
+        func = self._event_handlers[msg["event"]]
+        result = func(self, msg.get("data", None))
+        if asyncio.iscoroutine(result):
+            return await result
+        return result
