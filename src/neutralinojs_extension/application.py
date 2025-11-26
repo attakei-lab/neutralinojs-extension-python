@@ -95,7 +95,7 @@ class Extension:
         else:
             message = self._conn.make_message(method_or_data, data)
 
-        return await self._ws.send_str(message.to_json()), asyncio.get_event_loop()
+        return await self._ws.send_str(message.to_json())
 
     async def _on_message(self, message: str | bytes):
         """Entrypoint for message from host."""
