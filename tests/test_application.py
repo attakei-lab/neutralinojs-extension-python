@@ -1,4 +1,5 @@
 import json
+import logging
 from unittest.mock import AsyncMock
 
 import pytest
@@ -33,3 +34,43 @@ class Test_Application_send:
         assert "id" in msg
         assert "accessToken" in msg
         assert "data" not in msg
+
+
+class Test_Application_handle_text_message:
+    @pytest.mark.asyncio
+    async def test_registered_event(self, simple_app):
+        mock = AsyncMock()
+
+        @simple_app.event("hello")
+        async def hello_handler(app, data):
+            await mock.func(data)
+
+        await simple_app._on_message(json.dumps({"event": "hello"}))
+        assert mock.func.called
+        assert mock.func.call_args[0][0] is (None)
+
+    @pytest.mark.asyncio
+    async def test_unregistered_event(self, simple_app, caplog):
+        mock = AsyncMock()
+
+        @simple_app.event("hello")
+        async def hello_handler(app, data):
+            await mock.func(data)
+
+        with caplog.at_level(logging.DEBUG):
+            await simple_app._on_message(json.dumps({"event": "hello2"}))
+            assert not mock.func.called
+            assert "Event 'hello2' is unknown" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_none_event(self, simple_app, caplog):
+        mock = AsyncMock()
+
+        @simple_app.event("hello")
+        async def hello_handler(app, data):
+            await mock.func(data)
+
+        with caplog.at_level(logging.DEBUG):
+            await simple_app._on_message(json.dumps({"dummy": "hello2"}))
+            assert not mock.func.called
+            assert "Message doesn't have 'event' key." in caplog.text
