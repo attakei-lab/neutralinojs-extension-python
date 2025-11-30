@@ -45,6 +45,10 @@ class Extension:
         self._ws = None
         self._logger = logger.getChild(name if name else self.__class__.__name__)
 
+    # ------
+    # Declaring methods
+    # ------
+
     def event(self, name: str) -> Callable[[EventHandler], None]:
         """Register function as 'Event handler'."""
 
@@ -56,6 +60,10 @@ class Extension:
             self._logger.info("Event '%s' is %s", name, func)
 
         return _event
+
+    # ------
+    # Running methods
+    # ------
 
     async def start(self, conn: Connection):
         """Connect host and start waiting messages."""
@@ -70,6 +78,29 @@ class Extension:
                     break
                 else:
                     self._logger.warning(msg)
+
+    async def _on_message(self, message: str | bytes):
+        """Entrypoint for message from host."""
+        self._logger.debug("Recieved: %s", message)
+        msg = json.loads(message)
+
+        if "event" not in msg:
+            self._logger.debug("Message doesn't have 'event' key.")
+            return
+
+        if msg["event"] not in self._event_handlers:
+            self._logger.debug("Event '%s' is unknown. Skip it.", msg["event"])
+            return
+
+        func = self._event_handlers[msg["event"]]
+        result = func(self, msg.get("data", None))
+        if asyncio.iscoroutine(result):
+            return await result
+        return result
+
+    # ------
+    # Action methods
+    # ------
 
     @overload
     async def send(self, method_or_data: APISchema): ...
@@ -96,22 +127,3 @@ class Extension:
             message = self._conn.make_message(method_or_data, data)
 
         return await self._ws.send_str(message.to_json())
-
-    async def _on_message(self, message: str | bytes):
-        """Entrypoint for message from host."""
-        self._logger.debug("Recieved: %s", message)
-        msg = json.loads(message)
-
-        if "event" not in msg:
-            self._logger.debug("Message doesn't have 'event' key.")
-            return
-
-        if msg["event"] not in self._event_handlers:
-            self._logger.debug("Event '%s' is unknown. Skip it.", msg["event"])
-            return
-
-        func = self._event_handlers[msg["event"]]
-        result = func(self, msg.get("data", None))
-        if asyncio.iscoroutine(result):
-            return await result
-        return result
