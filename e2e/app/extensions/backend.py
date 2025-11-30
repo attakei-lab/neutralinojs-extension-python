@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 from pathlib import Path
@@ -11,21 +12,21 @@ app = Extension()
 
 
 @app.event("calculate")
-def calculate(app: Extension, data):
+async def calculate(app: Extension, data):
     result = eval(data)
-    app.send("app.broadcast", Broadcast("app_resultCalculate", result))
+    await app.send("app.broadcast", Broadcast("app_resultCalculate", result))
 
 
 @app.event("hello")
-def hello(app: Extension, data):
+async def hello(app: Extension, data):
     logging.info("Called 'hello' handler.")
-    app.send(Debug_Log("Hello, world"))
-    app.send(SetTitle("Hello, world"))
-    app.send(Broadcast("app_updateTitle", {"title": "Hello, world"}))
+    await app.send(Debug_Log("Hello, world"))
+    await app.send(SetTitle("Hello, world"))
+    await app.send(Broadcast("app_updateTitle", {"title": "Hello, world"}))
 
 
 if __name__ == "__main__":
     log_path = Path(os.environ["NL_TMPDIR"])
     logging.basicConfig(level=logging.DEBUG, filename=log_path / "backend.log")
     conn = Connection.from_stdin()
-    app.start(conn)
+    asyncio.run(app.start(conn))

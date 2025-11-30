@@ -2,21 +2,24 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
-import threading
 from typing import TYPE_CHECKING, overload
 
-from websocket import WebSocketApp
+from aiohttp import ClientSession, WSMsgType
 
 from .native_api._base import APISchema
 
 if TYPE_CHECKING:
-    from typing import Any, Callable
+    from typing import Any, Callable, Coroutine
+
+    from aiohttp import ClientWebSocketResponse
 
     from .host import Connection
 
-    EventHandler = Callable[["Extension", ...], None]
+    # TODO: Currently, event handlers must be async functions.
+    EventHandler = Callable[["Extension", ...], Coroutine[Any, Any, None]]
 
 
 logger = logging.getLogger(__name__)
@@ -32,8 +35,8 @@ class Extension:
     """Store of event handlers."""
     _conn: Connection | None
     """Using connection."""
-    _ws: WebSocketApp | None
-    """Connected socket."""
+    _ws: ClientWebSocketResponse | None
+    """Connected WebSocket."""
     _logger: logging.Logger
 
     def __init__(self, name: str = ""):
@@ -41,6 +44,10 @@ class Extension:
         self._conn = None
         self._ws = None
         self._logger = logger.getChild(name if name else self.__class__.__name__)
+
+    # ------
+    # Declaring methods
+    # ------
 
     def event(self, name: str) -> Callable[[EventHandler], None]:
         """Register function as 'Event handler'."""
@@ -54,18 +61,53 @@ class Extension:
 
         return _event
 
-    def start(self, conn: Connection):
+    # ------
+    # Running methods
+    # ------
+
+    async def start(self, conn: Connection):
         """Connect host and start waiting messages."""
         self._conn = conn
-        self._ws = WebSocketApp(self._conn.url, on_message=self._on_message)
-        self._ws.run_forever()
+        async with ClientSession().ws_connect(self._conn.url) as ws:
+            self._ws = ws
+            async for msg in ws:
+                if msg.type == WSMsgType.TEXT:
+                    asyncio.create_task(self._on_message(msg.data))
+                elif msg.type == WSMsgType.CLOSE:
+                    await ws.close()
+                    break
+                else:
+                    self._logger.warning(msg)
+
+    async def _on_message(self, message: str | bytes):
+        """Entrypoint for message from host."""
+        self._logger.debug("Recieved: %s", message)
+        msg = json.loads(message)
+
+        if "event" not in msg:
+            self._logger.debug("Message doesn't have 'event' key.")
+            return
+
+        if msg["event"] not in self._event_handlers:
+            self._logger.debug("Event '%s' is unknown. Skip it.", msg["event"])
+            return
+
+        func = self._event_handlers[msg["event"]]
+        result = func(self, msg.get("data", None))
+        if asyncio.iscoroutine(result):
+            return await result
+        return result
+
+    # ------
+    # Action methods
+    # ------
 
     @overload
-    def send(self, method_or_data: APISchema): ...
+    async def send(self, method_or_data: APISchema): ...
     @overload
-    def send(self, method_or_data: str, data: APISchema): ...
+    async def send(self, method_or_data: str, data: APISchema | Any | None = None): ...
 
-    def send(
+    async def send(
         self,
         method_or_data: str | APISchema,
         data: APISchema | Any | None = None,
@@ -84,22 +126,4 @@ class Extension:
         else:
             message = self._conn.make_message(method_or_data, data)
 
-        self._ws.send(message.to_json())
-
-    def _on_message(self, ws: WebSocketApp, message: str | bytes):
-        """Entrypoint for message from host."""
-        self._logger.debug("Recieved: %s", message)
-        msg = json.loads(message)
-
-        if "event" not in msg:
-            self._logger.debug("Message doesn't have 'event' key.")
-            return
-
-        if msg["event"] not in self._event_handlers:
-            self._logger.debug("Event '%s' is unknown. Skip it.", msg["event"])
-            return
-
-        threading.Thread(
-            target=self._event_handlers[msg["event"]],
-            args=(self, msg.get("data", None)),
-        ).start()
+        return await self._ws.send_str(message.to_json())
