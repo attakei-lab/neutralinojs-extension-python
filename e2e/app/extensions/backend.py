@@ -14,15 +14,15 @@ app = Extension()
 @app.event("calculate")
 async def calculate(app: Extension, data):
     result = eval(data)
-    await app.send("app.broadcast", Broadcast("app_resultCalculate", result))
+    await app.send("app.broadcast", {"event": "app_resultCalculate", "data": result})
 
 
 @app.event("hello")
 async def hello(app: Extension, data):
     logging.info("Called 'hello' handler.")
-    await app.send(Debug_Log("Hello, world"))
-    await app.send(SetTitle("Hello, world"))
-    await app.send(Broadcast("app_updateTitle", {"title": "Hello, world"}))
+    await app.send(Debug_Log(message="Hello, world"))
+    await app.send(SetTitle(title="Hello, world"))
+    await app.send(Broadcast(event="app_updateTitle", data={"title": "Hello, world"}))
 
 
 if __name__ == "__main__":

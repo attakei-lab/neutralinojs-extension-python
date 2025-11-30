@@ -5,13 +5,15 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, is_dataclass
 from typing import ClassVar
 
+from pydantic import BaseModel
+
 
 @dataclass
 class CustomEventData:
     pass
 
 
-class APISchema:
+class APISchema(BaseModel):
     """Base class for all native API classes."""
 
     ID: ClassVar[str]

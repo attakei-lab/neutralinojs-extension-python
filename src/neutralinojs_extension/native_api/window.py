@@ -5,12 +5,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 from ._base import APISchema
 
 
-@dataclass
 class SetTitle(APISchema):
     """Sets the title of the native window.
 

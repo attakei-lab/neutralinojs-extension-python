@@ -13,7 +13,9 @@ app_dir = Path(__file__).parent.parent
 async def hello(app, data: str):
     """When host call 'Hello' event."""
     await app.send(
-        ShowNotification("Hi!", f"Hello {data}, I am neutralino-extension!!")
+        ShowNotification(
+            title="Hi!", content=f"Hello {data}, I am neutralino-extension!!"
+        )
     )
 
 

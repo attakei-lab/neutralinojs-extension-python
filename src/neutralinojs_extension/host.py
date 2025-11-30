@@ -80,7 +80,7 @@ class Message:
             "accessToken": self.access_token,
         }
         if isinstance(self.data, APISchema):
-            msg["data"] = self.data.asdict()
+            msg["data"] = self.data.model_dump()
         elif self.data:
             msg["data"] = self.data
         return json.dumps(msg)

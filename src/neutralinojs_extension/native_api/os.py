@@ -5,16 +5,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import Literal
 
 from ._base import APISchema
 
-if TYPE_CHECKING:
-    from typing import Literal
 
-
-@dataclass
 class ShowMessageBox(APISchema):
     """Displays a message box.
 
@@ -36,7 +31,6 @@ class ShowMessageBox(APISchema):
     icon: Literal["INFO", "WARNING", "ERROR", "QUESTION"] = "INFO"
 
 
-@dataclass
 class ShowNotification(APISchema):
     """Displays a notification message.
 
@@ -50,7 +44,6 @@ class ShowNotification(APISchema):
     icon: Literal["INFO", "WARNING", "ERROR", "QUESTION"] = "INFO"
 
 
-@dataclass
 class ShowOpenDialog(APISchema):
     """Shows the file open dialog. You can use this function to obtain paths of existing files.
 
